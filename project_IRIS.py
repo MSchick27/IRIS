@@ -8,13 +8,15 @@ from time import strftime
 from TRIR import pyTRIR
 
 
+from FTIR import FTIRviewer
+
 
 class mMenubar():
     def initmenu(parent):
         def donothing():
             print('useless button for now')
  
-
+    
         menubar = tk.Menu(parent)
         filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label="New", command=donothing)
@@ -25,7 +27,7 @@ class mMenubar():
         menubar.add_cascade(label="File", menu=filemenu)
 
         IRmenu = tk.Menu(menubar, tearoff=0)
-        IRmenu.add_command(label="FTIR viewer", command=donothing)
+        IRmenu.add_command(label="FTIR viewer", command=menubarfunctions.open_FTIR_viewer)
         IRmenu.add_command(label="import FTIR data", command=donothing)
         menubar.add_cascade(label="IR", menu=IRmenu)
 
@@ -53,7 +55,6 @@ class menubarfunctions():
     def open_TRIR_viewer():
         print('...')
         menubarfunctions.destroy_currentwindow()
-        
         TRIRviewer.TRIR_viewerstartup.starter(frame)
 
     def open_TRIR_import():
@@ -61,7 +62,12 @@ class menubarfunctions():
         menubarfunctions.destroy_currentwindow()
         TRIRimporter.TRIR_import_top_window.TRIR_window_import(frame)
 
-
+    def open_FTIR_viewer():
+        print('opening FTIR viewer')
+        menubarfunctions.destroy_currentwindow()
+        FTIRviewer.dataconstruct.init_dict()
+        FTIRviewer.FTIR_viewerstartup.starter(frame)
+        
 
 
 

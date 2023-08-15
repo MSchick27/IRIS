@@ -87,11 +87,15 @@ class TRIR_import_top_window():
                 scanentrystring = scanentry.get()
                 delayentrystring = delayentry.get()
                 funcoptstring = func.get()
+                det_size = int(piximportentry.get())
                 
 
                 if funcoptstring == 's2s_signal':
                     #try function am ende addieren
-                    jsondataset = pyTRIR.PYTRIR.importinitfunction(scanentrystring,delayentrystring)
+                    jsondataset = pyTRIR.PYTRIR.importinitfunction(scanentrystring,delayentrystring,det_size)
+
+                if funcoptstring == 'weights':
+                    jsondataset = pyTRIR.weighted_import.init_weightedimport(scanentrystring,delayentrystring,det_size)
 
                 
                 wnlowlabel.config(text=str(round(float(jsondataset['wn'][0]),2)))
@@ -118,6 +122,10 @@ class TRIR_import_top_window():
                 pixelslic = str(pixelentry.get())
                 delayslice = str(fitdelayentry.get())
                 jsondataset['bgdata'] = pyTRIRbgcorr.TRIRbgcorr(jsondataset,polynomial,delayslice,pixelslic)
+
+            def export_data():
+                pyTRIR.PYTRIR.exportdata(jsondataset)
+                
                 
 
 
@@ -155,13 +163,19 @@ class TRIR_import_top_window():
 
                 global func
                 func = tk.StringVar()
-                funcoptions = ['s2s_signal','averaged']
+                funcoptions = ['s2s_signal','averaged','weights']
                 func.set(funcoptions[0])
                 funcopt = tk.OptionMenu(toolframe, func, *funcoptions)
                 funcopt.config(bg='grey25',fg='white',font=('Arial',15))
                 funcopt.place(x=10,y=55,width=120)
                 importbutton =tk.Button(toolframe,text='import',bg="grey90", fg="darkred",font=('Arial',20) ,width= 15,borderwidth=1, command=toolframe_widget_commands.import_data_trir)
                 importbutton.place(x=10,y=80)
+
+                global piximportentry
+                tk.Label(toolframe,bg='grey25',text='Detektor size:',font=('Arial',12),fg='white').place(x=10,y=120)
+                piximportentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
+                piximportentry.insert(0,'32')
+                piximportentry.place(x=100,y=120)
 
                 global wnlowlabel,wnhighlabel
                 tk.Label(toolframe,bg='grey25',text='wavenumber low:',font=('Arial',12),fg='white').place(x=10,y=170)
@@ -229,6 +243,9 @@ class TRIR_import_top_window():
                 jsonbutton.place(x=10,y=540)
                 savejsonbutton =tk.Button(toolframe,text='Save json',bg="grey90", fg="darkred",font=('Arial',20) ,width= 15,borderwidth=1)#, command=)
                 savejsonbutton.place(x=10,y=580)
+
+                exportdataopus = tk.Button(toolframe,text='export data',bg="grey90", fg="darkred",font=('Arial',15) ,width= 15,borderwidth=1, command=toolframe_widget_commands.export_data)
+                exportdataopus.place(x=10,y=620)
 
 
                 print('class toolframe_widgets successfully loaded all widgets')
@@ -356,21 +373,22 @@ class TRIR_import_top_window():
         levelnum = int(levelentry.get())
         TRIR_import_top_window.clearcanva()
 
-        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['data'])
+        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['data'],0.8)
         data_ax.contourf(jsondataset['delays'],jsondataset['wn'],jsondataset['data'],levels=levelnum,cmap='RdBu_r',vmin=minval,vmax=maxval,alpha=1)#,vmin=cmin,vmax=cmax)
-        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['bgdata'])
+        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['bgdata'],0.8)
         bg_ax.contourf(jsondataset['delays'],jsondataset['wn'],jsondataset['bgdata'],levels=levelnum,cmap='RdBu_r',vmin=minval,vmax=maxval,alpha=1)
         
-        rmsdata = pyTRIR.modify_arrays.subtract_bg_rms(jsondataset)
-        rms_bg_ax.pcolormesh(jsondataset['delays'],np.arange(len(jsondataset['wn'])),rmsdata,cmap='magma')
+        #rmsdata = pyTRIR.modify_arrays.subtract_bg_rms(jsondataset)
+        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['std_deviation'],maxfacentry.get())
+        clipped_stddev = np.clip(jsondataset['std_deviation'],a_min=minval,a_max = maxval)
+        rms_bg_ax.pcolormesh(jsondataset['delays'],np.arange(len(jsondataset['wn'])),clipped_stddev,cmap='magma')
 
         
         databgsub = pyTRIR.modify_arrays.subtract_bg(jsondataset)
-        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(databgsub)
-        maxval = float(maxfacentry.get())*maxval
-        minval = float(maxfacentry.get())*minval
-        diff_ax.contourf(jsondataset['delays'],jsondataset['wn'],databgsub,levels=levelnum,cmap='RdBu_r',vmin=minval,vmax=maxval,alpha=1)#'RdBu_r''seismic'
-
+        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(databgsub,maxfacentry.get())
+        clipped_databgsub = np.clip(databgsub,a_min=minval,a_max = maxval)
+        diff_ax.contourf(jsondataset['delays'],jsondataset['wn'],clipped_databgsub,levels=levelnum,cmap='RdBu_r',vmin=minval,vmax=maxval,alpha=1)#'RdBu_r''seismic'
+        print('Max '+str(maxval) + ' & min '+str(minval))
         
         for item in listbox.curselection():
             noisedelayindex = item
@@ -378,7 +396,7 @@ class TRIR_import_top_window():
     
 
         noisealldata= pyTRIR.modify_arrays.noiseallscans(jsondataset)
-        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['noise'])
+        maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['noise'],maxfacentry.get())
         noiseall_ax.pcolormesh(np.arange(np.shape(noisealldata)[0]),np.arange(np.shape(noisealldata)[1]),noisealldata.transpose(),cmap='viridis')
 
 
@@ -391,6 +409,12 @@ class TRIR_import_top_window():
             data_ax.set_xlim(xaxislow,xaxishigh)
             rms_bg_ax.set_xscale('log')
             rms_bg_ax.set_xlim(xaxislow,xaxishigh)
+
+        if func.get() == 'weights':
+            noise_ax.set_title('wheights')
+        
+        if func.get() == 's2s_signal':
+            noise_ax.set_title('s2s_signal')
 
         canvas2d.draw()
         print('plotted')
