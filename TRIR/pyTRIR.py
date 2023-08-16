@@ -36,12 +36,14 @@ class PYTRIR():
     
     def exportdata(jsondataset):
         databgsub = modify_arrays.subtract_bg(jsondataset)
+        stddeviation = jsondataset['std_deviation']
         print(np.shape(databgsub))
         myFile = filedialog.asksaveasfile(mode='w',initialfile = 'Untitled.txt', defaultextension=".txt",filetypes=[("All Files","*.*"),("Text Documents","*.txt")])
         for i,delay in enumerate(jsondataset['delays']):
             for j,wn in enumerate(jsondataset['wn']):
                 arrayvalue = databgsub[j,i]
-                myFile.write(str(delay)+'\t'+str(wn)+'\t'+str(arrayvalue)+'\n')
+                stddev_value = stddeviation[j,i]
+                myFile.write(str(delay)+'\t'+str(wn)+'\t'+str(arrayvalue)+'\t'+str(stddev_value)+'\n')
 
         myFile.close()
 
@@ -49,6 +51,7 @@ class PYTRIR():
 
 
     def importinitfunction(scanslice,delayslice,detektor_size):
+        print('\n IMPORT TYPE: \t import data averaged by s2s_signal ##########')
         delays_times,wavnumbers,alphamatrix = PYTRIR.get_scans(scanslice,delayslice,detektor_size)
         weighteddata = PYTRIR.get_s2s_DIFF(alphamatrix)
         weighteddatatr = np.transpose(weighteddata)
@@ -61,7 +64,7 @@ class PYTRIR():
         delaynum = len(delayfilearray)
 
         datasetjson = PYTRIR.j_son(weighteddatatr,bgdata,delays_times,wavnumbers,stddev_array,s2s_stddata,scannum,scanslice,delaynum,delayslice)
-        print('##########jsonified !')
+        print('import successfull ########## jsonified !')
         #print(datasetjson)
         return datasetjson
 
@@ -103,7 +106,7 @@ class PYTRIR():
         for file in search_files:
             if 'delay_file' in str(file):
                 delayfile= str(file)            #define variabel for delayfilepath
-                print('Found delayfile:  ' + str(delayfile))
+                print('DELAYFILE found: \t' + str(delayfile))
                 delay = np.load(str(datadir+'/'+delayfile))
                 delay = 10**(-3) * (delay[:,0])             #delays femtosekunden zu picosekunden
                 delay = cut1darray(delayslice,delay)        #slice gewollte delays 
@@ -111,7 +114,7 @@ class PYTRIR():
 
             if 'probe_wn_axis' in str(file):
                 wnfile = str(file)              #define variabel for wavenumberfilepath
-                print('Found Probeaxefile:' + str(wnfile))
+                print('PROBEAXISFILE found: \t' + str(wnfile))
                 wn = np.load(str(datadir+'/'+wnfile))       #wn = 1d array mit wellenzahlen in reihenfolge der pixel
                 print('...Probeaxisfile loaded successfully')
 
@@ -142,9 +145,12 @@ class PYTRIR():
         
 
         alpha = np.zeros((len(delayfilearray),scannumber,len(wn),2))
-        print(np.shape(alpha))
+        print('generating Data-array with dimensions: Delays, Scans, Pixels, datatype \t '+str(np.shape(alpha)))
+
+        runtimelist_perdelay = []
 
         for i in range(len(delayfilearray)):
+            timestart = time.time()
             delayf = delayfilearray[i]
             objectsperdelaylist = os.listdir(str(str(scdir)+'/'+str(delayf)))
             objectsperdelaylist.sort()
@@ -173,7 +179,7 @@ class PYTRIR():
             #print(s2s_std_scanarray)
             rho = np.zeros((scannumber,len(wn),2))
 
-            timestart = time.time()
+            
 
             for j in range(scannumber):
                 scanf = str(str(scdir)+'/'+str(delayf)+'/'+str(s2ssignal_scanarray[j]))
@@ -190,16 +196,18 @@ class PYTRIR():
             
                 timeend = time.time()
                 timeblock = timeend-timestart
-                timetillend = int(10-int(j/scannumber))*timeblock/(int(j/scannumber+1))
+                
                 hashs = '#'
                 points = '-'
-                print((int(j/scannumber))*hashs + int(scannumber-int(j/scannumber))*points+':'+ str('{:5.3f}s'.format(timetillend)), end='\r')
+                print((int(j/scannumber *40))*hashs + (40-int(j/scannumber *40))*points+':'+ str('{:5.3f}s'.format(timeblock)), end='\r')
                 
         
+            time_per_delay = time.time()
+            runtimelist_perdelay.append(time_per_delay-timestart)
+            estimated_runtime = np.mean(runtimelist_perdelay)*(len(delayfilearray)-i)
             alpha[i,:,:,:] = rho
-            timeending = time.time()
-            runtime = timeending-timestart
-            print('loaded Delay: '+str(i) + str('  ')+str('{:5.3f}s'.format(runtime)))
+            print((int(j/scannumber *40))*hashs + (39-int(j/scannumber *40))*points+'\t '+ str('{:5.3f}s'.format(timeblock))+'\t loaded Delay: '+str(i) +' \t estimated time to finish: '+str('{:5.3f}s'.format(estimated_runtime)))
+        
         
 
         print('(Delays, Scans, Pixel, P-NP:s2s_std)')
@@ -256,7 +264,7 @@ class PYTRIR():
 
 class weighted_import:
     def init_weightedimport(scanslice,delayslice,detektor_size):
-        print('import data averaged by weights')
+        print('\n IMPORT TYPE: \t import data averaged by weights ##########')
         delays_times,wavnumbers, alpha = weighted_import.getscansbyweights(scanslice,delayslice,detektor_size)  #alpha shape (Delays, Scans, Pixel, P-NP-wP-wNP) (28, 101, 1024, 4)
         print('all delays imported successfully')
 
@@ -275,7 +283,7 @@ class weighted_import:
         delaynum = len(delayfilearray)
 
         datasetjson = PYTRIR.j_son(DIFF,bgdata,delays_times,wavnumbers,stddev_array,noisedata,scannum,scanslice,delaynum,delayslice)
-        print('##########jsonified !')
+        print('import successfull ########## jsonified !')
         return datasetjson
 
 
@@ -289,7 +297,7 @@ class weighted_import:
         return weights_mean
     
     def weighted_stddeviation(alpha):
-        print('calculating the weighted std')
+        print('Calculating the weighted std deviation')
         weighted_mean_PUMP = np.average(alpha[:,:,:,0],axis=1,weights=alpha[:,:,:,2])
         weighted_mean_PUMP_ = np.expand_dims(weighted_mean_PUMP,axis=1)
         weighted_mean_PUMP_3d = np.broadcast_to(weighted_mean_PUMP_,np.shape(alpha[:,:,:,0]))
@@ -312,7 +320,7 @@ class weighted_import:
             return np.sqrt( np.square(derivative_loga(10,weighted_mean_PUMP)) * np.square(weighted_std_PUMP) + np.square(derivative_loga(10,weighted_mean_NPUMP)) * np.square(weighted_std_NPUMP) )
         
         gauss_and_weighted_std = gaussche_Fehlerfortpflanzung(weighted_mean_PUMP,weighted_mean_NPUMP,weighted_std_PUMP,weighted_std_NPUMP)
-        print(np.shape(gauss_and_weighted_std))
+        print('Weigthed std deviation format: '+str(np.shape(gauss_and_weighted_std)))
 
         return gauss_and_weighted_std
 
@@ -350,7 +358,7 @@ class weighted_import:
         for file in search_files:
             if 'delay_file' in str(file):
                 delayfile= str(file)            #define variabel for delayfilepath
-                print('Found delayfile:  ' + str(delayfile))
+                print('DELAYFILE found: \t' + str(delayfile))
                 delay = np.load(str(datadir+'/'+delayfile))
                 delay = 10**(-3) * (delay[:,0])             #delays femtosekunden zu picosekunden
                 delay = cut1darray(delayslice,delay)        #slice gewollte delays 
@@ -358,7 +366,7 @@ class weighted_import:
 
             if 'probe_wn_axis' in str(file):
                 wnfile = str(file)              #define variabel for wavenumberfilepath
-                print('Found Probeaxefile:' + str(wnfile))
+                print('PROBEAXISFILE found: \t' + str(wnfile))
                 wn = np.load(str(datadir+'/'+wnfile))       #wn = 1d array mit wellenzahlen in reihenfolge der pixel
                 print('...Probeaxisfile loaded successfully')
 
@@ -388,9 +396,12 @@ class weighted_import:
         
 
         alpha = np.zeros((len(delayfilearray),scannumber,len(wn),4))
-        print(np.shape(alpha))
+        print('generating Data-array with dimensions: Delays, Scans, Pixels, datatype \t '+str(np.shape(alpha)))
+
+        runtimelist_perdelay = []
 
         for i in range(len(delayfilearray)):
+            timestart = time.time()
             delayf = delayfilearray[i]
             objectsperdelaylist = os.listdir(str(str(scdir)+'/'+str(delayf)))
             objectsperdelaylist.sort()
@@ -423,7 +434,7 @@ class weighted_import:
             #print(s2s_std_scanarray)
             rho = np.zeros((scannumber,len(wn),4))
 
-            timestart = time.time()
+            
 
             for j in range(scannumber):
                 dataPNP = str(str(scdir)+'/'+str(delayf)+'/'+str(dataPNP_scanarray[j]))
@@ -442,13 +453,14 @@ class weighted_import:
                 timetillend = int(10-int(j/scannumber))*timeblock/(int(j/scannumber+1))
                 hashs = '#'
                 points = '-'
-                print((int(j/scannumber))*hashs + int(scannumber-int(j/scannumber))*points+':'+ str('{:5.3f}s'.format(timetillend)), end='\r')
+                print((int(j/scannumber *40))*hashs + (39-int(j/scannumber *40))*points+'\t '+ str('{:5.3f}s'.format(timeblock)), end='\r')
                 
-        
+
+            time_per_delay = time.time()
+            runtimelist_perdelay.append(time_per_delay-timestart)
+            estimated_runtime = np.mean(runtimelist_perdelay)*(len(delayfilearray)-i)
             alpha[i,:,:,:] = rho
-            timeending = time.time()
-            runtime = timeending-timestart
-            print('loaded Delay: '+str(i) + str('  ')+str('{:5.3f}s'.format(runtime)))
+            print((int(j/scannumber *40))*hashs + (39-int(j/scannumber *40))*points+'\t '+ str('{:5.3f}s'.format(timeblock))+'\t loaded Delay: '+str(i) +' \t estimated time to finish: '+str('{:5.3f}s'.format(estimated_runtime)))
         
 
         print('(Delays, Scans, Pixel, P-NP-wP-wNP)')
@@ -561,27 +573,28 @@ class colormapsfor_TRIR():
             maxval=0.1
             minval=-0.1
 
-        print('Maxvalue for colormap:' +str(maxval))
+        #print('Maxvalue for colormap:' +str(maxval))
         #print(absarray)
         return maxval,minval
     
 
-    def create_custom_colormap(start_color, end_color, min_value, max_value,levels):
+    def create_custom_colormap(start_color, end_color):   #, min_value, max_value,levels)
         # Convert hex colors to RGB values
         start_rgb = mcolors.hex2color(start_color)
+        mid_rgb = mcolors.hex2color('#FFFFFF')
         end_rgb = mcolors.hex2color(end_color)
     
         # Normalize the data range based on min and max values
-        norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
+        #norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
     
         # Create a linear gradient between the start and end colors
         colormap = mcolors.LinearSegmentedColormap.from_list(
             'custom_colormap',
-            [start_rgb, (1, 1, 1), end_rgb],
+            [start_rgb, (1.1,1.1,1.1), end_rgb],
             N=256,  # Number of colors in the colormap
         )
     
-        return colormap, norm
+        return colormap#, norm
         
 
         

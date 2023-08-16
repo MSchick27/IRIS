@@ -142,20 +142,20 @@ class TRIR_import_top_window():
                 plotbutton.place(x=10,y=20)
 
                 global logscalex
-                tk.Label(toolframe,bg='grey25',fg='white',text='Logscale:',font=('Arial',10)).place(x=250,y=20)
+                tk.Label(toolframe,bg='grey25',fg='white',text='Logscale:',font=('Arial',10)).place(x=230,y=20)
                 logscalex = tk.BooleanVar()
-                tk.Checkbutton(toolframe,variable=logscalex,bg='grey20').place(x=330,y=20)
+                tk.Checkbutton(toolframe,variable=logscalex,bg='grey20').place(x=300,y=20)
                 global levelentry
-                tk.Label(toolframe,bg='grey25',text='Levels:',font=('Arial',12),fg='white').place(x=250,y=50)
+                tk.Label(toolframe,bg='grey25',text='Levels:',font=('Arial',10),fg='white').place(x=230,y=50)
                 levelentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 levelentry.insert(0,'20')
                 levelentry.place(x=290,y=50)
                 global maxfacentry
-                tk.Label(toolframe,bg='grey25',text='opacity:',font=('Arial',12),fg='white').place(x=250,y=80)
+                tk.Label(toolframe,bg='grey25',text='opacity:',font=('Arial',10),fg='white').place(x=230,y=80)
                 maxfacentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 maxfacentry.insert(0,'0.8')
                 maxfacentry.place(x=290,y=80)
-                removescanone = tk.Button(toolframe,text='subscan 1',bg="grey90", fg="darkred",font=('Arial',12) ,width= 10,borderwidth=1, command=toolframe_widget_commands.removerfirstscan)
+                removescanone = tk.Button(toolframe,text='subscan 1',bg="grey90", fg="darkred",font=('Arial',10) ,width= 10,borderwidth=1, command=toolframe_widget_commands.removerfirstscan)
                 removescanone.place(x=250,y=110)
                 
 
@@ -166,27 +166,27 @@ class TRIR_import_top_window():
                 funcoptions = ['s2s_signal','averaged','weights']
                 func.set(funcoptions[0])
                 funcopt = tk.OptionMenu(toolframe, func, *funcoptions)
-                funcopt.config(bg='grey25',fg='white',font=('Arial',15))
+                funcopt.config(bg='grey25',fg='white',font=('Arial',14))
                 funcopt.place(x=10,y=55,width=120)
-                importbutton =tk.Button(toolframe,text='import',bg="grey90", fg="darkred",font=('Arial',20) ,width= 15,borderwidth=1, command=toolframe_widget_commands.import_data_trir)
+                importbutton =tk.Button(toolframe,text='import',bg="grey90", fg="darkred",font=('Arial',16) ,width= 13,borderwidth=1, command=toolframe_widget_commands.import_data_trir)
                 importbutton.place(x=10,y=80)
 
                 global piximportentry
-                tk.Label(toolframe,bg='grey25',text='Detektor size:',font=('Arial',12),fg='white').place(x=10,y=120)
-                piximportentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
+                tk.Label(toolframe,bg='grey25',text='Detektor size:',font=('Arial',10),fg='white').place(x=10,y=120)
+                piximportentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',10))
                 piximportentry.insert(0,'32')
-                piximportentry.place(x=100,y=120)
+                piximportentry.place(x=120,y=120)
 
                 global wnlowlabel,wnhighlabel
-                tk.Label(toolframe,bg='grey25',text='wavenumber low:',font=('Arial',12),fg='white').place(x=10,y=170)
-                wnlowlabel = tk.Label(toolframe,bg='grey25',text='0',font=('Arial',12),fg='white')
+                tk.Label(toolframe,bg='grey25',text='wavenumber low:',font=('Arial',10),fg='white').place(x=10,y=170)
+                wnlowlabel = tk.Label(toolframe,bg='grey25',text='0',font=('Arial',10),fg='white')
                 wnlowlabel.place(x=120,y=170)
-                tk.Label(toolframe,bg='grey25',text='wavenumber high:',font=('Arial',12),fg='white').place(x=10,y=190)
-                wnhighlabel = tk.Label(toolframe,bg='grey25',text='3000',font=('Arial',12),fg='white')
+                tk.Label(toolframe,bg='grey25',text='wavenumber high:',font=('Arial',10),fg='white').place(x=10,y=190)
+                wnhighlabel = tk.Label(toolframe,bg='grey25',text='3000',font=('Arial',10),fg='white')
                 wnhighlabel.place(x=120,y=190)
 
                 global listbox
-                tk.Label(toolframe,bg='grey25',text='Delays',font=('Arial',12),fg='white').place(x=10,y=230)
+                tk.Label(toolframe,bg='grey25',text='Delays',font=('Arial',10),fg='white').place(x=10,y=230)
                 listboxframe = tk.Frame(toolframe, borderwidth=1, relief="ridge")
                 listboxframe.place(x= 10,y=250,width=100,height=100)
                 listbox = tk.Listbox(listboxframe)
@@ -200,51 +200,51 @@ class TRIR_import_top_window():
                 scrollbar.config(command = listbox.yview)
 
                 global scanentry,scannumber
-                tk.Label(toolframe,bg='grey25',text='Scannumber:',font=('Arial',12),fg='white').place(x=140,y=230)
-                scannumber = tk.Label(toolframe,bg='grey25',text='67',font=('Arial',12),fg='white')
+                tk.Label(toolframe,bg='grey25',text='Scannumber:',font=('Arial',10),fg='white').place(x=140,y=230)
+                scannumber = tk.Label(toolframe,bg='grey25',text='67',font=('Arial',10),fg='white')
                 scannumber.place(x=230,y=230)
-                tk.Label(toolframe,bg='grey25',text='Slice:',font=('Arial',12),fg='white').place(x=260,y=230)
-                scanentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
+                tk.Label(toolframe,bg='grey25',text='Slice:',font=('Arial',10),fg='white').place(x=260,y=230)
+                scanentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',10))
                 scanentry.insert(0,':')
-                scanentry.place(x=290,y=230)
+                scanentry.place(x=300,y=230)
 
 
                 global delayentry,delaynumber
-                tk.Label(toolframe,bg='grey25',text='Delaynumber:',font=('Arial',12),fg='white').place(x=140,y=260)
-                delaynumber = tk.Label(toolframe,bg='grey25',text='43',font=('Arial',12),fg='white')
+                tk.Label(toolframe,bg='grey25',text='Delaynumber:',font=('Arial',10),fg='white').place(x=140,y=260)
+                delaynumber = tk.Label(toolframe,bg='grey25',text='43',font=('Arial',10),fg='white')
                 delaynumber.place(x=230,y=260)
-                tk.Label(toolframe,bg='grey25',text='Slice:',font=('Arial',12),fg='white').place(x=260,y=260)
+                tk.Label(toolframe,bg='grey25',text='Slice:',font=('Arial',10),fg='white').place(x=260,y=260)
                 delayentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 delayentry.insert(0,':')
-                delayentry.place(x=290,y=260)
+                delayentry.place(x=300,y=260)
 
 
 
 
                 #Backgroundsubtraction part
                 global polyentry,pixelentry,fitdelayentry
-                tk.Label(toolframe,bg='grey25',text='Background subtraction:',font=('Arial',20),fg='white').place(x=30,y=400)
-                tk.Label(toolframe,bg='grey25',text='Polynomial Order:',font=('Arial',12),fg='white').place(x=10,y=440)
+                tk.Label(toolframe,bg='grey25',text='Background subtraction:',font=('Arial',14),fg='white').place(x=30,y=400)
+                tk.Label(toolframe,bg='grey25',text='Polynomial Order:',font=('Arial',10),fg='white').place(x=10,y=440)
                 polyentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 polyentry.insert(0,'5')
                 polyentry.place(x=170,y=440)
-                tk.Label(toolframe,bg='grey25',text='Pixels to Fit:',font=('Arial',12),fg='white').place(x=10,y=470)
+                tk.Label(toolframe,bg='grey25',text='Pixels to Fit:',font=('Arial',10),fg='white').place(x=10,y=470)
                 pixelentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 pixelentry.insert(0,':')
                 pixelentry.place(x=170,y=470)
-                tk.Label(toolframe,bg='grey25',text='Fit to delay:',font=('Arial',12),fg='white').place(x=10,y=500)
+                tk.Label(toolframe,bg='grey25',text='Fit to delay:',font=('Arial',10),fg='white').place(x=10,y=500)
                 fitdelayentry = tk.Entry(toolframe,bg='black',fg='white',width=10,borderwidth=0,font=('Arial',12))
                 fitdelayentry.insert(0,':')
                 fitdelayentry.place(x=170,y=500)
 
 
 
-                jsonbutton =tk.Button(toolframe,text='generate Background',bg="grey90", fg="darkred",font=('Arial',15) ,width= 15,borderwidth=1, command=toolframe_widget_commands.generate_background)
+                jsonbutton =tk.Button(toolframe,text='generate Background',bg="grey90", fg="darkred",font=('Arial',10) ,width= 15,borderwidth=1, command=toolframe_widget_commands.generate_background)
                 jsonbutton.place(x=10,y=540)
-                savejsonbutton =tk.Button(toolframe,text='Save json',bg="grey90", fg="darkred",font=('Arial',20) ,width= 15,borderwidth=1)#, command=)
+                savejsonbutton =tk.Button(toolframe,text='Save json',bg="grey90", fg="darkred",font=('Arial',10) ,width= 15,borderwidth=1)#, command=)
                 savejsonbutton.place(x=10,y=580)
 
-                exportdataopus = tk.Button(toolframe,text='export data',bg="grey90", fg="darkred",font=('Arial',15) ,width= 15,borderwidth=1, command=toolframe_widget_commands.export_data)
+                exportdataopus = tk.Button(toolframe,text='export data',bg="grey90", fg="darkred",font=('Arial',12) ,width= 15,borderwidth=1, command=toolframe_widget_commands.export_data)
                 exportdataopus.place(x=10,y=620)
 
 
@@ -292,7 +292,7 @@ class TRIR_import_top_window():
         bg_ax = fig.add_subplot(grid[0:3, 4:7],sharey=data_ax,sharex=data_ax)
         bg_ax.set_title('background')
         rms_bg_ax = fig.add_subplot(grid[0:3, 8:11])
-        rms_bg_ax.set_title('rms')
+        rms_bg_ax.set_title('std deviation')
         rms_bg_ax.set_xlabel('scans')
         rms_bg_ax.set_ylabel('pixels')
         noise_ax = fig.add_subplot(grid[4:7, 0:3])
@@ -329,7 +329,7 @@ class TRIR_import_top_window():
 
         data_ax.set_xlabel('time [ps]')
         bg_ax.set_title('background')
-        rms_bg_ax.set_title('rms')
+        rms_bg_ax.set_title('std deviation')
         rms_bg_ax.set_xlabel('delays')
         rms_bg_ax.set_ylabel('pixels')
         noise_ax.set_title('noise')
@@ -390,10 +390,14 @@ class TRIR_import_top_window():
         diff_ax.contourf(jsondataset['delays'],jsondataset['wn'],clipped_databgsub,levels=levelnum,cmap='RdBu_r',vmin=minval,vmax=maxval,alpha=1)#'RdBu_r''seismic'
         print('Max '+str(maxval) + ' & min '+str(minval))
         
-        for item in listbox.curselection():
-            noisedelayindex = item
-        noise_ax.pcolormesh(np.arange(np.shape(jsondataset['noise'])[1]),np.arange(np.shape(jsondataset['noise'])[2]),np.transpose(jsondataset['noise'][noisedelayindex]),cmap='viridis')
-    
+        try:
+            for item in listbox.curselection():
+                noisedelayindex = item
+            noise_ax.pcolormesh(np.arange(np.shape(jsondataset['noise'])[1]),np.arange(np.shape(jsondataset['noise'])[2]),np.transpose(jsondataset['noise'][noisedelayindex]),cmap='viridis')
+        except:
+            print('SCANPLOT: Select delay to display scans')
+            print(str(listbox.curselection()))
+            noise_ax.pcolormesh(np.arange(np.shape(jsondataset['noise'])[1]),np.arange(np.shape(jsondataset['noise'])[2]),np.transpose(jsondataset['noise'][0]),cmap='viridis')
 
         noisealldata= pyTRIR.modify_arrays.noiseallscans(jsondataset)
         maxval,minval= pyTRIR.colormapsfor_TRIR.findmaxval(jsondataset['noise'],maxfacentry.get())
