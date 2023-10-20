@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 from PIL import Image, ImageTk
 
 import numpy as np
@@ -13,6 +14,8 @@ from matplotlib import cm
 import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap
 import os
+import json
+
 
 from FTIR import pyFTIR,pyFTIR_dicts,pyFTIR_FITS
 
@@ -129,9 +132,15 @@ class FTIR_viewerstartup():
                 print('JSON generated')
 
             def import_data_JSON():
-                 print('select your json FILE')
-                 global jsondict
-                 jsondict = pyFTIR.import_and_export_functions.import_JSON_project(statusbox,listbox)
+                print('select your json FILE')
+                global jsondict
+                jsondict = pyFTIR.import_and_export_functions.import_JSON_project(statusbox,listbox)
+
+            def export_data_JSON():
+                a = filedialog.asksaveasfilename(initialdir = str(dirpath),title = "Save Project")
+                newjsonfile = open(str(str(a) + '.json'),'w')
+                json.dump(jsondict, newjsonfile)
+                newjsonfile.close()
 
 
             def delete_data():
@@ -177,11 +186,11 @@ class FTIR_viewerstartup():
                 loadjson = tk.Button(toolframe,bg='grey90',fg='darkred',font=('Arial',10),borderwidth=1,text='json', command=buttoncommands.import_data_JSON).place(x=280,y=230)
                 loaddata = tk.Button(toolframe,image=arrow, bg='grey25',fg='white',borderwidth=0, command=buttoncommands.import_data_).place(x=280,y=270)
                 deldata = tk.Button(toolframe,image=washer, bg='grey25',fg='white',borderwidth=0, command=buttoncommands.delete_data).place(x=305,y=270)
-                exjson = tk.Button(toolframe,image=export, bg='grey25',fg='white',borderwidth=0, command=buttoncommands.test).place(x=330,y=270)
+                exjson = tk.Button(toolframe,image=export, bg='grey25',fg='white',borderwidth=0, command=buttoncommands.export_data_JSON).place(x=330,y=270)
                 
                 global xlow,xhigh,ylow,yhigh
                 global xlabel,ylabel,titleentry, ymulti
-                global gridbox,delimiteropt,delimitervar
+                global gridbox,delimiteropt,delimitervar,labelbox
 
                 tk.Label(toolframe,bg='grey25',text='x:',font=('Arial',10),fg='white').place(x=10,y=100)
                 xlow = tk.Entry(toolframe,bg='black',fg='white',width=12,borderwidth=0,font=('Arial',10))
@@ -220,7 +229,11 @@ class FTIR_viewerstartup():
 
                 tk.Label(toolframe,bg='grey25',fg='white',text='Grid:',font=('Arial',10)).place(x=10,y=160)
                 gridbox = tk.BooleanVar()
-                tk.Checkbutton(toolframe,variable=gridbox,bg='grey20').place(x=45,y=157)
+                tk.Checkbutton(toolframe,variable=gridbox,bg='grey20').place(x=50,y=157)
+
+                tk.Label(toolframe,bg='grey25',fg='white',text='Legend:',font=('Arial',10)).place(x=10,y=180)
+                labelbox = tk.BooleanVar()
+                tk.Checkbutton(toolframe,variable=labelbox,bg='grey20').place(x=50,y=177)
 
                 delimitervar = tk.StringVar()
                 delimiteroptions = ['tab','space',',',';']
@@ -232,6 +245,12 @@ class FTIR_viewerstartup():
 
 
         buttons.mainbuttons()
+
+
+
+
+
+
 
 
 
@@ -270,7 +289,7 @@ class FTIR_viewerstartup():
 
                 global container
                 container = tk.Frame(toolframe, borderwidth=2,bg='grey25', relief="ridge")
-                container.place(x= 25,y=330,width=330,height=310)
+                container.place(x= 25,y=330,width=340,height=350)
                 print('container placed')
 
             def listboxchange(event):
@@ -281,7 +300,8 @@ class FTIR_viewerstartup():
                         index = selection[0]
                         datalistbox = event.widget.get(index)
                         scrollframe.rebuild_optionmenu(datalistbox)
-                        print('selected')
+                        print('selected: '+str(datalistbox))
+
                 else:
                         print('Please select a data key')
 
@@ -306,11 +326,11 @@ class FTIR_viewerstartup():
                 
                 global datalabelentry       #Setup für den LABEL ENTRY
                 tk.Label(container,bg='grey25',text='Label:',font=('Arial',10),fg='white').place(x=70,y=10)
-                datalabelentry = tk.Entry(container,bg='black',font=('Arial',10),fg='white',width=15,borderwidth=0)
+                datalabelentry = tk.Entry(container,bg='black',font=('Arial',10),fg='white',width=20,borderwidth=0)
                 datalabelentry.insert(0,str(jsondict[str(selectedkey)]['label']))
-                datalabelentry.place(x=115,y=10)
+                datalabelentry.place(x=110,y=10)
 
-                labelchangebutton = tk.Button(container,text='->', bg='grey90',fg='darkred',font=('Arial',10),borderwidth=1, command=lambda:scrollframe.change_key(selectedkey)).place(x=240,y=7)
+                labelchangebutton = tk.Button(container,text='->', bg='grey90',fg='darkred',font=('Arial',10),borderwidth=1, command=lambda:scrollframe.change_key(selectedkey)).place(x=270,y=7)
 
 
                 #ROW 2 #############################################
@@ -327,7 +347,7 @@ class FTIR_viewerstartup():
                 global col
                 col = tk.StringVar()
                 col.set(str(jsondict[selectedkey]['color']))
-                coloptions = ['black','red','blue','green','cyan','magenta','darkorange','skyblue','grey','chocolate'] 
+                coloptions = ['black','red','lightcoral','blue','skyblue','green','cyan','magenta','darkorange','grey','chocolate'] 
                 colopt = tk.OptionMenu(container, col, *coloptions)#,command=lambda:scrollframe.change_json(dataname))
                 colopt.config(font=('Arial',10),bg='grey25',fg='white')
                 colopt.place(x=100,y=30,width=70)
@@ -384,7 +404,7 @@ class FTIR_viewerstartup():
 
                 #ROW 5 #############################################
                 global wavecutentry
-                secdev = tk.Button(container,text='2.dev',bg="grey90", fg="darkred",font=('Arial',10) ,width= 6,borderwidth=1, command=lambda:scrollframe.sec_dev(selectedkey)).place(x=180,y=150)
+                secdev = tk.Button(container,text='2.dev',bg="grey90", fg="darkred",font=('Arial',10) ,width= 4,borderwidth=1, command=lambda:scrollframe.sec_dev(selectedkey)).place(x=180,y=150)
                 cut_out = tk.Button(container,text='Cut',bg="grey90", fg="darkred",font=('Arial',10) ,width= 4,borderwidth=1, command=lambda:scrollframe.cut(selectedkey)).place(x=130,y=150)
                 wavecutentry = tk.Entry(container,bg='black',fg='white',width=18,borderwidth=0,font=('Arial',10))
                 wavecutentry.insert(0, '')
@@ -392,35 +412,58 @@ class FTIR_viewerstartup():
 
                 ignorebut = tk.Button(container,text='ign',bg="grey90", fg="darkred",font=('Arial',10) ,width= 4,borderwidth=1, command=lambda:scrollframe.ignore(selectedkey)).place(x=250,y=150)
                 
+                trapzdata = tk.Button(container,text='TRAPZ', bg="grey90", fg="darkred",font=('Arial',10),width= 4,borderwidth=1, command=lambda:scrollframe.show_trapz(selectedkey)).place(x=130,y=170)
+
 
 
                 # ROW 6 #############################################
                 global polyentry,waveentry
-                polyfitdata = tk.Button(container,text='polyFIT', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.polyfit_data(selectedkey)).place(x=150,y=200)
+                polyfitdata = tk.Button(container,text='polyFIT', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.polyfit_data(selectedkey)).place(x=120,y=200)
                 tk.Label(container,bg="black", fg="white",font=('Arial',10),text='Polyfit deg:').place(x=10,y=200)
                 polyentry = tk.Entry(container,bg='black',fg='white',width=3,borderwidth=0,font=('Arial',10))
                 polyentry.insert(0, '5')
-                polyentry.place(x=100,y=200)
+                polyentry.place(x=80,y=200)
 
                 waveentry = tk.Entry(container,bg='black',fg='white',width=18,borderwidth=0,font=('Arial',10))
                 waveentry.insert(0, '')
-                waveentry.place(x=220,y=200)
-
+                waveentry.place(x=200,y=200)
 
                 # ROW 7 #############################################
-
+                fitband = tk.Button(container,text='Fit', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.fit_bands(selectedkey)).place(x=120,y=230)
+                tk.Label(container,bg="black", fg="white",font=('Arial',10),text='Fitting:').place(x=10,y=230)
+                fitentry = tk.Entry(container,bg='black',fg='white',width=18,borderwidth=0,font=('Arial',10))
+                fitentry.insert(0, '')
+                fitentry.place(x=200,y=230)
+                global fitmode
+                fitmode = tk.StringVar()
+                fitmodeoptions = ['lorentz','gauss','multi-lorentz'] 
+                fitmode.set(fitmodeoptions[0])
+                fitmodeopt = tk.OptionMenu(container, fitmode, *fitmodeoptions)
+                fitmodeopt["menu"].config(fg="RED")
+                fitmodeopt.config(bg="grey25", fg="white",font=('Arial',10))
+                fitmodeopt.place(x=50,y=230,width=65)
 
                 # ROW 8 #############################################
                 global fourierentry
-                fourierfitdata = tk.Button(container,text='FFT smooth', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.fouriersmooth(selectedkey)).place(x=150,y=270)
-                tk.Label(container,bg="black", fg="white",font=('Arial',10),text='Sm cutoff:').place(x=10,y=270)
+                fourierfitdata = tk.Button(container,text='FFT smooth', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.fouriersmooth(selectedkey)).place(x=120,y=260)
+                tk.Label(container,bg="black", fg="white",font=('Arial',10),text='Sm cutoff:').place(x=10,y=260)
                 fourierentry = tk.Entry(container,bg='black',fg='white',width=3,borderwidth=0,font=('Arial',10))
                 fourierentry.insert(0, '6')
-                fourierentry.place(x=100,y=270)
+                fourierentry.place(x=80,y=260)
+
+                smoothstar = tk.Button(container,text='advanced sm', bg="grey90", fg="darkred",font=('Arial',10),width= 8,borderwidth=1, command=lambda:scrollframe.fouriersmooth(selectedkey)).place(x=200,y=260)
+                
+                
+
+                
+
+
+                # ROW 9 #############################################
 
 
 
-                # ROW 10 #############################################
+
+
 
 
 
@@ -459,6 +502,16 @@ class FTIR_viewerstartup():
                     x,y = pyFTIR.manipulate_data.subtract_bg(x,y,xbg,ybg,scale)
                 return x,y
             
+            def dont_double_date(name,dataset): #nutzfunltiomn um platz zu sparen, name muss häufiger gecheckt werden
+                counter=0
+                while name in jsondict:
+                        counter = counter+1
+                        name = str(name + str(counter))
+
+                jsondict[name] = dataset
+                listbox.insert(tk.END, name)
+
+            
             def change_key(key):
                 print('changed '+str(jsondict[str(key)]['label'])+' to '+str(datalabelentry.get()))
                 new_key = str(datalabelentry.get())
@@ -481,7 +534,12 @@ class FTIR_viewerstartup():
                 canvas.draw()
             
             def invertdata(key):
-                print('function to invert the data')
+                x,y = scrollframe.getxy(key)
+                nx,ny = x,[item*(-1) for item in y]
+                jsondict[key]['xdata']= nx
+                jsondict[key]['ydata']= ny
+                buttoncommands.plotplot()
+                print('inverted: '+str(key)+'data *(-1)')
 
             def sec_dev(key):
                 print('function to calculate the second derivative of the given spectrum')
@@ -525,7 +583,38 @@ class FTIR_viewerstartup():
                 listbox.insert(tk.END, datadump)
 
             def ignore(key):
-                print('function to not sure for now')
+                print('not sure for now')
+
+            def show_trapz(key):
+                x,y = scrollframe.getxy(key)
+                wavecut = wavecutentry.get()
+                xint = list(wavecut.split(','))
+                if wavecut == '':
+                    print('tap 2 times on the Plot to define the intgration area !!!')
+                    polypoints = plt.ginput(n=2,timeout=30, show_clicks=True, mouse_add = plt.MouseButton.LEFT,mouse_pop= plt.MouseButton.RIGHT,mouse_stop = plt.MouseButton.MIDDLE)
+                    xint = [polypoints[0][0],polypoints[1][0]]
+
+                xint = [float(item) for item in xint]
+                xint.sort()
+                statusbox.insert(0, str(xint))
+
+                xredint,yredint = pyFTIR.manipulate_data.data_reduce(x,y,xint[0],xint[1])
+                trapzvalue = np.abs(np.trapz(yredint,x=xredint))
+                print('Integral value: '+str(trapzvalue))
+                trapzval_formatted = "%.3g" %trapzvalue
+
+                xint_formatted = [ round(item,2) for item in xint ]
+                datadump = str(key+'_trapz :'+str(trapzval_formatted)+' over '+str(xint_formatted))
+                integrationarea = dataconstruct.j_son(xredint,yredint,False,'',0,True,'skyblue',0.9,'solid',str(datadump),1)
+                counter=0
+                while datadump in jsondict:
+                        counter = counter+1
+                        datadump = str(datadump + str(counter))
+
+                jsondict[datadump] = integrationarea
+                listbox.insert(tk.END, datadump)
+
+
 
             def polyfit_data(key):
                     print('tap 4 times on the Plot to define the fitting areas !!!')
@@ -572,23 +661,11 @@ class FTIR_viewerstartup():
 
                     polyset =  dataconstruct.j_son(xdatapoly,list(polyfunk(xdatapoly)),False,'',0,True,'grey',0.9,'dashed',str('Polyfit'),0)
                     datapol = str(key+'_polyfit')
-                    counter=0
-                    while datapol in jsondict:
-                        counter = counter+1
-                        datapol = str(datapol + str(counter))
-
-                    jsondict[datapol] = polyset
-                    listbox.insert(tk.END, datapol)
+                    scrollframe.dont_double_date(name=datapol,dataset=polyset)
                     
                     doubledset =  dataconstruct.j_son(xdatapoly,ydatad,True,str(str(key)+'_polyfit'),1,True,'darkorange',0.9,'solid',str('Data for substraktion'),1)
                     datadub = str(key+'_data')
-                    counter=0
-                    while datadub in jsondict:
-                        counter = counter+1
-                        datadub = str(datadub + str(counter))
-
-                    jsondict[datadub] = doubledset
-                    listbox.insert(tk.END, datadub)
+                    scrollframe.dont_double_date(name=datadub,dataset=doubledset)
 
                 
             def autofit_bg():
@@ -596,22 +673,73 @@ class FTIR_viewerstartup():
 
             def fouriersmooth(key):
                 print('fourier smoothing fuction satrt')
-                x = list(jsondict[key]['xdata'])
-                y = list(jsondict[key]['ydata'])
-                bgdatakey = jsondict[key]['bgkey']
-                if jsondict[key]['bg'] == True:
-                        xbg= list(jsondict[bgdatakey]['xdata'])
-                        ybg= list(jsondict[bgdatakey]['ydata'])
-                        scale = float(jsondict[key]['bgscale'])
-                        x,y = pyFTIR.manipulate_data.subtract_bg(x,y,xbg,ybg,scale)
+                x,y= scrollframe.getxy(key)
 
                 smoothfak = int(fourierentry.get())
                 y_smoothed = pyFTIR_FITS.advanced.fouriersmooth(y,smoothfak)
-
                 newkey =str(str(key)+'_FFT_'+str(smoothfak))
-                fourierset =  dataconstruct.j_son(x[:int(len(y_smoothed))],y_smoothed,False,'',0,True,'magenta',0.9,'solid',newkey,0)
+                fourierset =  dataconstruct.j_son(x[:int(len(y_smoothed))],y_smoothed,False,'',0,True,'magenta',0.9,'solid',newkey,1)
                 jsondict[newkey] = fourierset
                 listbox.insert(tk.END, newkey)
+
+            def fit_bands(key):
+                print('bandfitting func running..')
+                fitfunc = str(fitmode.get())
+                print(fitfunc)
+                x,y= scrollframe.getxy(key)
+
+                tpoints = plt.ginput(n=3,timeout=30, show_clicks=True, mouse_add = plt.MouseButton.LEFT,mouse_pop= plt.MouseButton.RIGHT,mouse_stop = plt.MouseButton.MIDDLE)
+                print(tpoints)
+                xps = [tpoints[0][0],tpoints[1][0],tpoints[2][0]]
+                yps = [tpoints[0][1],tpoints[1][1],tpoints[2][1]]
+                xh = max(xps)
+                xl = min(xps)
+                width = (xh-xl)/2.4
+                xps.remove(xl)
+                xps.remove(xh)
+                xpeak = xps[0]
+                amp = max(yps)-min(yps)
+                height = min(yps)
+                x,y = pyFTIR.manipulate_data.data_reduce(x,y,xl,xh)
+                fitx,fity,parstring,par,fittype,fiterror,fwhm = pyFTIR_FITS.bandfits.fitband(x,y,amp,xpeak,width,height,fitfunc)
+                print('#### Finished fit type: '+ str(fittype))
+                print(parstring)
+                print('estimated fit error: '+str(fiterror))
+
+                containername = str('FWHM: '+str(fwhm))
+                fitdataset = dataconstruct.j_son(fitx,fity,False,'',1,True,'red',0.9,'dashed',containername,0)
+                fitname = str(str(fittype)+'_fit_')
+                scrollframe.dont_double_date(name=fitname,dataset=fitdataset)
+
+                yfwhm = par[0]/2 + par[3]
+                xfwhm1 = par[1] - fwhm/2
+                xfwhm2 = par[1] + fwhm/2
+                fwhmset =  dataconstruct.j_son([xfwhm1,xfwhm2],[yfwhm,yfwhm],False,'',1,True,'grey',0.9,'dotted',str('FWHM:'+str(round(fwhm,3))),1)   
+                fitname = str('FWHM: '+str(fwhm))
+                scrollframe.dont_double_date(name=fitname,dataset=fwhmset)
+            
+            def fitbands(key):
+                print('bandfitting func running..')
+                fitfunc = str(fitmode.get())
+                print(fitfunc)
+                x,y= scrollframe.getxy(key)
+                fitx,fity,parstring,par,fittype,fiterror,fwhm = pyFTIR_FITS.bandfits.fitband_allg(x,y,fitfunc)
+
+                print('#### Finished fit type: '+ str(fittype))
+                print(parstring)
+                print('estimated fit error: '+str(fiterror))
+            
+                containername = str('FWHM: '+str(fwhm))
+                fitdataset = dataconstruct.j_son(fitx,fity,False,'',1,True,'red',0.9,'dashed',containername,0)
+                fitname = str(str(fittype)+'_fit_')
+                scrollframe.dont_double_date(name=fitname,dataset=fitdataset)
+
+                yfwhm = par[0]/2 + par[3]
+                xfwhm1 = par[1] - fwhm/2
+                xfwhm2 = par[1] + fwhm/2
+                fwhmset =  dataconstruct.j_son([xfwhm1,xfwhm2],[yfwhm,yfwhm],False,'',1,True,'grey',0.9,'dotted',str('FWHM:'+str(round(fwhm,3))),1)   
+                fitname = str('FWHM: '+str(fwhm))
+                scrollframe.dont_double_date(name=fitname,dataset=fwhmset)
 
 
 
@@ -623,6 +751,18 @@ class FTIR_viewerstartup():
 
 
         toolframe.place(x=0,y=0,width=400,height=700)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -672,13 +812,14 @@ class FTIR_viewerstartup():
 
         #print(jsondict)
         for key in jsondict:
+            label = str(key)
             x = list(jsondict[key]['xdata'])
             y = list(jsondict[key]['ydata'])
             subnum = int(jsondict[key]['subplot'])
             farb = str(jsondict[key]['color'])
             bgdatakey = jsondict[key]['bgkey']
             linest = jsondict[key]['linestyle']
-            print(linest)
+            #print(linest)
  
             if jsondict[key]['bg'] == True:
                 xbg= list(jsondict[bgdatakey]['xdata'])
@@ -691,7 +832,11 @@ class FTIR_viewerstartup():
             y = [(item*multi) for item in y]
 
             if jsondict[key]['show'] == True:
-                ax[subnum].plot(x,y,color=farb,linestyle=str(linest))
+                if '_trapz' in key:
+                     ax[subnum].fill_between(x,y,y2=0,color=farb,linestyle=str(linest),label=label,alpha=.3)
+                else:
+                    ax[subnum].plot(x,y,color=farb,linestyle=str(linest),label=label)
+                
 
         #self.ax.legend()
         
@@ -703,6 +848,11 @@ class FTIR_viewerstartup():
         ax[0].set_xlim(float(xlow.get()),float(xhigh.get()))
         ax[0].set_ylim(float(ylow.get()),float(yhigh.get()))
         ax[1].set_xlim(float(xlow.get()),float(xhigh.get()))
+        if labelbox.get() == True:
+            print('legend True')
+            ax[0].legend(loc='best', prop={'size': 10})
+            
+
         canvas.draw()
     
 

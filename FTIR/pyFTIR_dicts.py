@@ -1,6 +1,6 @@
 def init():
     init_dict = {
-        'xlabel': 'wavenumbers [1/cm]',
+        'xlabel': r'wavenumbers $cm^{-1}$',
         'ylabel': r'$\Delta$ abs. [mOD]',
         'xhigh': 4000,
         'xlow' : 1000,

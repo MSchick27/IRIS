@@ -1,13 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
+from tkPDFViewer import tkPDFViewer as pdf
 import matplotlib.pyplot as plt
-
-from TRIR import TRIRimporter,TRIRviewer
 from time import strftime
-from TRIR import pyTRIR
 
-
+from TRIR import TRIRimporter,TRIRviewer,pyTRIR
 from FTIR import FTIRviewer
 
 
@@ -16,29 +14,36 @@ class mMenubar():
         def donothing():
             print('useless button for now')
  
-    
         menubar = tk.Menu(parent)
+
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="New", command=donothing)
-        filemenu.add_command(label="Open", command=donothing)
-        filemenu.add_command(label="Save", command=donothing)
+        filemenu.add_command(label="Re-open", command=donothing)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=root.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Close", command=root.quit)
+        menubar.add_cascade(label="IRIS", menu=filemenu)
 
         IRmenu = tk.Menu(menubar, tearoff=0)
         IRmenu.add_command(label="FTIR viewer", command=menubarfunctions.open_FTIR_viewer)
-        IRmenu.add_command(label="import FTIR data", command=donothing)
+        #IRmenu.add_command(label="import FTIR data", command=donothing)
         menubar.add_cascade(label="IR", menu=IRmenu)
 
         TRIRmenu = tk.Menu(menubar, tearoff=0)
-        TRIRmenu.add_command(label="TRIR viewer", command=menubarfunctions.open_TRIR_viewer)
         TRIRmenu.add_command(label="import TRIR data", command=menubarfunctions.open_TRIR_import)
+        TRIRmenu.add_command(label="TRIR viewer", command=menubarfunctions.open_TRIR_viewer)
+        TRIRmenu.add_separator()
+        TRIRmenu.add_command(label="Lissajou", command=menubarfunctions.open_TRIR_viewer)
         menubar.add_cascade(label="TRIR", menu=TRIRmenu)
+
+        D2IRmenu = tk.Menu(menubar, tearoff=0)
+        D2IRmenu.add_command(label="import 2D-IR data", command=donothing)
+        D2IRmenu.add_command(label="2D-IR viewer", command=donothing)
+        D2IRmenu.add_separator()
+        D2IRmenu.add_command(label="construction!", command=donothing) 
+        menubar.add_cascade(label="2D-IR", menu=D2IRmenu)
 
         helpmenu = tk.Menu(menubar, tearoff=0)
         helpmenu.add_command(label="Help Index", command=donothing)
-        helpmenu.add_command(label="About...", command=donothing)
+        helpmenu.add_command(label="Documentation.", command=menubarfunctions.opendocumentation)
         menubar.add_cascade(label="Help", menu=helpmenu)
         return menubar
 
@@ -67,6 +72,23 @@ class menubarfunctions():
         menubarfunctions.destroy_currentwindow()
         FTIRviewer.dataconstruct.init_dict()
         FTIRviewer.FTIR_viewerstartup.starter(frame)
+
+    def open_2dir_viewer():
+        print('opening module for 2D-IR analysis')
+        menubarfunctions.destroy_currentwindow()
+        
+        
+
+    
+    def opendocumentation():
+        print('open topwindorw for doc')
+        top = tk.Toplevel()
+        top.geometry('700x900')
+        top.title('IRIS-documentation')
+        viewer = pdf.ShowPdf()
+        pdfframe = viewer.pdf_view(top,pdf_location = r"IRIS/SETUP/Fehlerrechnung.pdf", width = 200, height = 200)
+        pdfframe.pack()
+
         
 
 
@@ -108,7 +130,7 @@ class timer():
         global frame 
         frame = tk.Frame(parent, width = 1300, height = 700, bg = 'grey25')
         frame.place(x = 0, y = 0)
-        lb = tk.Label(frame, text = 'IRIS', width = 32, height =2, font = ('Helvetica', 30)).place(x=380,y=220)
+        tk.Label(frame, text = 'IRIS', width = 32, height =2, font = ('Helvetica', 30)).place(x=380,y=220)
         tk.Label(frame, text = 'AKB Dataanalysis-Tool copyright by M.Schick', width = 92, height =2, font = ('Helvetica', 10)).place(x=380,y=300)
         lbl1 = tk.Label(frame, text = list, width = 39, height = 10, font = ('Arial', 25))
         lbl1.place(x = 380, y = 350)
@@ -116,8 +138,6 @@ class timer():
         lbl1.after(1000, update_time)
 
         
-
-
 
 startup()
 
