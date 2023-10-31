@@ -15,6 +15,8 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap
 import os
 import json
+import random
+import pandas as pd
 
 
 from FTIR import pyFTIR,pyFTIR_dicts,pyFTIR_FITS
@@ -141,6 +143,7 @@ class FTIR_viewerstartup():
                 newjsonfile = open(str(str(a) + '.json'),'w')
                 json.dump(jsondict, newjsonfile)
                 newjsonfile.close()
+                print('Project saved at: '+str(str(a) + '.json'))
 
 
             def delete_data():
@@ -429,14 +432,14 @@ class FTIR_viewerstartup():
                 waveentry.place(x=200,y=200)
 
                 # ROW 7 #############################################
-                fitband = tk.Button(container,text='Fit', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.fit_bands(selectedkey)).place(x=120,y=230)
+                fitband = tk.Button(container,text='Fit', bg="grey90", fg="darkred",font=('Arial',10),width= 6,borderwidth=1, command=lambda:scrollframe.fitbands(selectedkey)).place(x=120,y=230)
                 tk.Label(container,bg="black", fg="white",font=('Arial',10),text='Fitting:').place(x=10,y=230)
                 fitentry = tk.Entry(container,bg='black',fg='white',width=18,borderwidth=0,font=('Arial',10))
                 fitentry.insert(0, '')
                 fitentry.place(x=200,y=230)
                 global fitmode
                 fitmode = tk.StringVar()
-                fitmodeoptions = ['lorentz','gauss','multi-lorentz'] 
+                fitmodeoptions = ['lorentz','gauss','adv_multi-lrnz'] 
                 fitmode.set(fitmodeoptions[0])
                 fitmodeopt = tk.OptionMenu(container, fitmode, *fitmodeoptions)
                 fitmodeopt["menu"].config(fg="RED")
@@ -522,7 +525,15 @@ class FTIR_viewerstartup():
                 #scrollframe.update_json(key)
 
             def export_data(key):
-                print('function to export data')
+                a = filedialog.asksaveasfilename(initialdir = dirpath,title = "Save file")#,filetypes = (("textfiles", "*.txt*"))) 
+                x,y = scrollframe.getxy(key) 
+                x,y = [format(item,'.9f') for item in x],[format(item,'.9f') for item in y]
+                df = pd.DataFrame({'wavenumber': x,'OD':y})
+                df = df.set_index('wavenumber')
+
+                df.to_csv(str(a), sep ='\t')
+                print(str('data exported to: '+str(a)))
+
             
             def findpeaks(key,jsondict):
                 num = int(jsondict[key]['subplot'])
@@ -719,28 +730,45 @@ class FTIR_viewerstartup():
                 scrollframe.dont_double_date(name=fitname,dataset=fwhmset)
             
             def fitbands(key):
-                print('bandfitting func running..')
                 fitfunc = str(fitmode.get())
                 print(fitfunc)
                 x,y= scrollframe.getxy(key)
-                fitx,fity,parstring,par,fittype,fiterror,fwhm = pyFTIR_FITS.bandfits.fitband_allg(x,y,fitfunc)
+                
+                if 'lorentz' in fitfunc or 'gaussian' in fitfunc:
+                    print('normal bandfitting func running...')
+                    fitx,fity,parstring,par,fittype,fiterror,fwhm = pyFTIR_FITS.bandfits.fitband_allg(x,y,fitfunc)
 
-                print('#### Finished fit type: '+ str(fittype))
-                print(parstring)
-                print('estimated fit error: '+str(fiterror))
+                    print('#### Finished fit type: '+ str(fittype))
+                    print(parstring)
+                    print('estimated fit error: '+str(fiterror))
             
-                containername = str('FWHM: '+str(fwhm))
-                fitdataset = dataconstruct.j_son(fitx,fity,False,'',1,True,'red',0.9,'dashed',containername,0)
-                fitname = str(str(fittype)+'_fit_')
-                scrollframe.dont_double_date(name=fitname,dataset=fitdataset)
+                    containername = str('FWHM: '+str(fwhm))
+                    fitdataset = dataconstruct.j_son(fitx,fity,False,'',1,True,'red',0.9,'dashed',containername,0)
+                    fitname = str(str(fittype)+'_fit_')
+                    scrollframe.dont_double_date(name=fitname,dataset=fitdataset)
 
-                yfwhm = par[0]/2 + par[3]
-                xfwhm1 = par[1] - fwhm/2
-                xfwhm2 = par[1] + fwhm/2
-                fwhmset =  dataconstruct.j_son([xfwhm1,xfwhm2],[yfwhm,yfwhm],False,'',1,True,'grey',0.9,'dotted',str('FWHM:'+str(round(fwhm,3))),1)   
-                fitname = str('FWHM: '+str(fwhm))
-                scrollframe.dont_double_date(name=fitname,dataset=fwhmset)
+                    if fwhm != 0:
+                        yfwhm = par[0]/2 + par[3]
+                        xfwhm1 = par[1] - fwhm/2
+                        xfwhm2 = par[1] + fwhm/2
+                        fwhmset =  dataconstruct.j_son([xfwhm1,xfwhm2],[yfwhm,yfwhm],False,'',1,True,'grey',0.9,'dotted',str('FWHM:'+str(round(fwhm,3))),1)   
+                        fitname = str('FWHM: '+str(fwhm))
+                        scrollframe.dont_double_date(name=fitname,dataset=fwhmset)
 
+                if 'adv' in fitfunc:
+                    print('lovely, you found the beautiful advanced part...')
+                    fit_dict = pyFTIR_FITS.advanced_fits.init(x,y,fitfunc)
+                    #print(fit_dict)
+                    exisisting_colors = ['black','red','lightcoral','blue','skyblue','green','cyan','magenta','darkorange','grey','chocolate'] 
+
+                    for fitbandname, xylist in fit_dict.items():
+                        selected_color = random.choice(exisisting_colors)
+                        containername = str('still empty beta')
+                        fitdataset = dataconstruct.j_son(xylist[0],xylist[1],False,'',1,True,str(selected_color),0.9,'dashed',containername,0)
+                        fitname = str(fitbandname)
+                        scrollframe.dont_double_date(name=fitname,dataset=fitdataset)
+
+       
 
 
 
