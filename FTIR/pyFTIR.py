@@ -193,8 +193,8 @@ die Unterschiede zu erkennen
 -------------------------------------------
 INPUTS: low_wav,high_wav,data_list_input,mean_spec
 return ist eine liste mit den skalierten 2d arrays
-'''
-import numpy as np
+    '''
+""" import numpy as np
 from scipy import optimize as opt
 def import_dpt_tupel(low_wav,high_wav,data_path_tupel):
     data_list = [] #contains 2d-arrays as list
@@ -238,14 +238,13 @@ def import_data(data_path,delimit):
         x.append(float(it[0].strip()))
         y.append(float(it[-1].strip()))
         
-        
-        """ seg = item.index(delimit)
+        seg = item.index(delimit)
         wavestr = item[0:seg]
         wavenum = float(wavestr)
         x.append(wavenum)
         absorb = item[seg:int(len(item)-1)] #10->11 wenn ir
         absorbnum = float(absorb) 
-        y.append(absorbnum) """
+        y.append(absorbnum) 
 
     return x,y
 
@@ -376,3 +375,4 @@ def correlate(data_list_input,mean_spec):
 
     return data_scaled_list , sc_val
 
+"""
